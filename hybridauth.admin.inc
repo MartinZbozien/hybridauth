@@ -491,6 +491,15 @@ function hybridauth_admin_provider_settings($form, &$form_state, $provider_name 
     '#default_value' => $config->get('hybridauth_provider_' . $provider_id . '_keys_secret'),
   );
 
+  $form['vtabs']['application']['hybridauth_provider_' . $provider_id . '_url'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Application custom callback'),
+    '#description' => t('Callback url if different from default. Do not use full endpoint. For example if you use <i>https://test.com/something</i>
+      callback that will be used like <i>https://test.com/something/hybridauth/endpoint</i> and return url will be like <i>https://test.com/something/hybridauth/endpoint</i>
+      '),
+    '#default_value' => $config->get('hybridauth_provider_' . $provider_id . '_url'),
+  );
+
   $form['vtabs']['window_settings'] = array(
     '#type' => 'fieldset',
     '#title' => t('Authentication window settings'),

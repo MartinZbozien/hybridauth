@@ -884,6 +884,7 @@ function hybridauth_get_instance() {
       }
       $config = hybridauth_get_config();
       try {
+        print_r($config);
         $controller = new Hybridauth\Hybridauth($config);
       }
       catch (Exception $e) {
@@ -921,6 +922,7 @@ function hybridauth_get_storage() {
  * Returns HybridAuth config.
  */
 function hybridauth_get_config() {
+  global $base_url;
   $ha_config = &backdrop_static(__FUNCTION__, NULL);
 
   if (!isset($ha_config)) {
@@ -932,7 +934,7 @@ function hybridauth_get_config() {
     }
 
     $ha_config = array(
-      'callback' => url('hybridauth/endpoint', array('absolute' => TRUE, 'language' => _hybridauth_language_default())),
+      'callback' => url('hybridauth/endpoint', array('absolute' => FALSE, 'language' => _hybridauth_language_default())),
       'providers' => array(),
       'debug_mode' => $hybridauth_debug,
       'debug_file' => $logfile,
@@ -941,7 +943,7 @@ function hybridauth_get_config() {
     // Special case Facebook: we need to provide a language-aware base URL
     // because otherwise there is a redirect_uri mismatch in the Facebook SDK.
     if ($_GET['q'] === 'hybridauth/window/Facebook') {
-      $ha_config['callback'] = url('hybridauth/endpoint', array('absolute' => TRUE));
+      $ha_config['callback'] = url('hybridauth/endpoint', array('absolute' => FALSE));
     }
 
     if ($proxy = config_get('hybridauth.settings', 'hybridauth_proxy')) {
@@ -953,8 +955,16 @@ function hybridauth_get_config() {
         $ha_config['providers'][$provider_id] = $provider_config;
       }
     }
-  }
 
+    $lowercase_provider_id = strtolower($provider_id);
+    $config = config('hybridauth.settings');
+    if(empty($ha_config['providers'][$provider_id] ['url'])) {
+      $ha_config['callback'] = $base_url . $ha_config['callback'];
+    } else {
+      $ha_config['callback'] = $ha_config['providers'][$provider_id]['url'] . $ha_config['callback'];
+    }
+  }
+  
   return $ha_config;
 }
 
@@ -962,6 +972,7 @@ function hybridauth_get_config() {
  * Returns provider config.
  */
 function hybridauth_get_provider_config($provider_id) {
+  global $base_url;
   $lowercase_provider_id = strtolower($provider_id);
   $config = config('hybridauth.settings');
   $provider_config = array(
@@ -973,7 +984,8 @@ function hybridauth_get_provider_config($provider_id) {
     ),
     'scope' => $config->get('hybridauth_provider_' . $lowercase_provider_id . '_scope'),
     'display' => $config->get('hybridauth_provider_' . $lowercase_provider_id . '_display'),
-    'hauth_return_to' => url('hybridauth/endpoint', array('absolute' => TRUE, 'language' => _hybridauth_language_default())),
+    'hauth_return_to' => url('hybridauth/endpoint', array('absolute' => FALSE, 'language' => _hybridauth_language_default())),
+    'url' => trim($config->get('hybridauth_provider_' . $lowercase_provider_id . '_url'))
   );
   if (is_array($provider_config['scope'])) {
     $provider_config['scope'] = array_filter($config['scope']);
@@ -986,6 +998,12 @@ function hybridauth_get_provider_config($provider_id) {
       $function = $provider[$provider_id]['plugin']['configuration_callback'];
       $function($provider_config, $provider_id);
     }
+  }
+
+  if(empty($provider_config['url'])) {
+    $provider_config['hauth_return_to'] = $base_url . $provider_config['hauth_return_to'];
+  } else {
+    $provider_config['hauth_return_to'] = $provider_config['url'] . $provider_config['hauth_return_to'];
   }
 
   // Allow other modules to alter the provider config.

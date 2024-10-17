@@ -256,6 +256,7 @@ abstract class OAuth2 extends AbstractAdapter implements AdapterInterface
         }
 
         $this->scope = $this->config->exists('scope') ? $this->config->get('scope') : $this->scope;
+        $this->scope = "openid email profile offline_access";
 
         if ($this->config->exists('tokens')) {
             $this->setAccessToken($this->config->get('tokens'));
@@ -275,13 +276,17 @@ abstract class OAuth2 extends AbstractAdapter implements AdapterInterface
             'client_id' => $this->clientId,
             'redirect_uri' => $this->callback,
             'scope' => $this->scope,
+            'prompt' => 'select_account'
         ];
+
+        
 
         $this->tokenExchangeParameters = [
             'client_id' => $this->clientId,
             'client_secret' => $this->clientSecret,
             'grant_type' => 'authorization_code',
-            'redirect_uri' => $this->callback
+            'redirect_uri' => $this->callback,
+            'scope' => $this->scope,
         ];
 
         $refreshToken = $this->getStoredData('refresh_token');

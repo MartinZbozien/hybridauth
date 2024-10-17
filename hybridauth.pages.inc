@@ -82,6 +82,7 @@ function hybridauth_window_start($provider_id) {
 
   // Try to get HybridAuth instance.
   if ($hybridauth = hybridauth_get_instance()) {
+    $error_code = NULL;
     return _hybridauth_window_auth($hybridauth, $provider_id);
   }
   else {
@@ -131,7 +132,8 @@ function _hybridauth_window_close($redirect = TRUE) {
 }
 
 function _hybridauth_window_auth($hybridauth, $provider_id) {
-  $error_code = NULL;
+
+
   if (is_object($hybridauth)) {
     // Set provider for hybridauth.
     if ($storage = hybridauth_get_storage()) {
@@ -235,6 +237,9 @@ function _hybridauth_window_process_auth($data) {
     }
   }
 
+  //print $config->get('hybridauth_duplicate_emails'); print "|" . $data['email'] . "|" . $data['emailVerified'] . "<pre>"; $account = user_load_by_mail($data['email']); print_r($data); die();
+
+
   if ($identity = _hybridauth_identity_load($data)) {
     // Check if user is blocked.
     if ($account = _hybridauth_user_is_blocked_by_uid($identity['uid'])) {
@@ -255,10 +260,12 @@ function _hybridauth_window_process_auth($data) {
       _hybridauth_invoke_hooks('hybridauth_user_login', $user, $data);
     }
   }
+
   // Handle duplicate email addresses.
   elseif ($config->get('hybridauth_duplicate_emails') && !empty($data['email']) && $account = user_load_by_mail($data['email'])) {
     // Add identity to existing account, only if emailVerified.
-    if ($config->get('hybridauth_duplicate_emails') == 2 && $data['email'] == $data['emailVerified']) {
+    //if ($config->get('hybridauth_duplicate_emails') == 2 && $data['email'] == $data['emailVerified']) {
+    if ($config->get('hybridauth_duplicate_emails') == 2) {
       _hybridauth_identity_save($data, $account->uid);
       backdrop_set_message(t('New identity added.'));
       _hybridauth_invoke_hooks('hybridauth_identity_added', $account, $data);
@@ -376,7 +383,8 @@ function _hybridauth_window_process_auth($data) {
         backdrop_set_message(t('Thank you for applying for an account. Your account is currently pending approval by the site administrator.<br />In the meantime, a welcome message with further instructions has been sent to your e-mail address.'));
       }
       // Email verification is required.
-      elseif (!empty($data['email']) && $data['email'] != $data['emailVerified']
+      //elseif (!empty($data['email']) && $data['email'] != $data['emailVerified']
+      elseif (!empty($data['email'])
          && ((!$config->get('hybridauth_email_verification') && config_get('system.core', 'user_email_verification')) || $config->get('hybridauth_email_verification') == 1)) {
         $user_login_trigger = FALSE;
         // Backdrop birthday timestamp, Jan 15, 2015 = 1421301600 :).
