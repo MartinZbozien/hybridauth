@@ -884,7 +884,6 @@ function hybridauth_get_instance() {
       }
       $config = hybridauth_get_config();
       try {
-        print_r($config);
         $controller = new Hybridauth\Hybridauth($config);
       }
       catch (Exception $e) {
