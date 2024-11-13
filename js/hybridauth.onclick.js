@@ -17,7 +17,7 @@
       var popup_window = window.open(
         this.href,
         'hybridauth',
-        'location=no,menubar=no,resizable=yes,scrollbars=yes,status=no,titlebar=yes,toolbar=no,channelmode=yes,fullscreen=yes,width=' + width + ',height=' + height
+        'location=no,menubar=no,resizable=yes,scrollbars=yes,status=no,titlebar=yes,toolbar=no,channelmode=yes,fullscreen=yes,width=' + encodeURIComponent(width) + ',height=' + encodeURIComponent(height)
       );
       popup_window.focus();
       return false;
